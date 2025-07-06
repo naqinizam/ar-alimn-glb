@@ -1,6 +1,8 @@
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, send_from_directory
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Required for iOS
 
 @app.route('/')
 def home():
