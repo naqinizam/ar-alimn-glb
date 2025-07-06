@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AR ALIMN - AR Viewer</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="ar-container">
+        <a-scene 
+            vr-mode-ui="enabled: false"
+            arjs="sourceType: webcam; detectionMode: mono; maxDetectionRate: 30; debugUIEnabled: false;"
+            renderer="logarithmicDepthBuffer: true;"
+            embedded>
+
+            <a-assets>
+                <a-asset-item id="chair-model" src="/models/chair.glb"></a-asset-item>
+            </a-assets>
+
+            <a-entity
+                gltf-model="#chair-model"
+                scale="0.5 0.5 0.5"
+                position="0 0 -1"
+                rotation="0 180 0"
+                arjs-anchor>
+            </a-entity>
+
+            <a-camera-static />
+        </a-scene>
+
+        <div class="ar-controls">
+            <button id="reset-scene">Reset Chair</button>
+        </div>
+    </div>
+
+    <script src="/static/js/ar.js"></script>
+</body>
+</html>
