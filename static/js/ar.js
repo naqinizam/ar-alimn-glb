@@ -1,31 +1,39 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle reset button
-    const resetBtn = document.getElementById('reset-scene');
-    if (resetBtn) {
-        resetBtn.addEventListener('click', function() {
-            const chair = document.querySelector('[gltf-model]');
-            if (chair) {
-                chair.setAttribute('position', '0 0 -1');
-                chair.setAttribute('rotation', '0 0 0');
-                chair.setAttribute('scale', '0.5 0.5 0.5');
-            }
-        });
-    }
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.4/dist/mindar-image-three.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
 
-    // Add loading state
-    const chairModel = document.querySelector('[gltf-model]');
-    if (chairModel) {
-        chairModel.addEventListener('model-loading', function() {
-            console.log('Chair model is loading...');
-        });
-        
-        chairModel.addEventListener('model-loaded', function() {
-            console.log('Chair model loaded successfully');
-        });
-        
-        chairModel.addEventListener('model-error', function() {
-            alert('Failed to load chair model. Please check console for details.');
-            console.error('Model error:', this.components['gltf-model'].model);
-        });
-    }
-});
+<script>
+  async function startAR() {
+    const arContainer = document.getElementById('ar-container');
+    arContainer.style.display = 'block';
+
+    const mindarThree = new window.MINDAR.IMAGE.MindARThree({
+      container: arContainer,
+      imageTargetSrc: "https://cdn.jsdelivr.net/gh/MindAR-js/targets@master/targets/sample-target.mind",
+    });
+
+    const { renderer, scene, camera } = mindarThree;
+
+    const anchor = mindarThree.addAnchor(0);
+    const gltfLoader = new THREE.GLTFLoader();
+
+    gltfLoader.load(
+      "/static/models/chair.glb",
+      (gltf) => {
+        const model = gltf.scene;
+        model.scale.set(0.4, 0.4, 0.4); // Adjust if too big or small
+        model.position.set(0, -0.5, 0); // Adjust for height
+        anchor.group.add(model);
+      },
+      undefined,
+      (error) => {
+        console.error("Failed to load model:", error);
+      }
+    );
+
+    await mindarThree.start();
+    renderer.setAnimationLoop(() => {
+      renderer.render(scene, camera);
+    });
+  }
+</script>
