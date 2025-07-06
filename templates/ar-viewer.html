@@ -3,111 +3,83 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>AR Chair Debug</title>
+    <title>AR Chair Demo</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
     <style>
-        #debug {
-            position: fixed;
+        body { margin: 0; overflow: hidden; }
+        .arjs-loader {
+            height: 100%;
+            width: 100%;
+            position: absolute;
             top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0,0,0,0.9);
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
             color: white;
-            padding: 10px;
-            font-family: monospace;
-            z-index: 10000;
-            font-size: 14px;
-        }
-        #video-preview {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 120px;
-            height: 180px;
-            z-index: 9999;
-            border: 2px solid red;
+            font-family: Arial;
         }
     </style>
 </head>
-<body style="margin: 0;">
-    <div id="debug">Starting AR debug session...</div>
-    <video id="video-preview" autoplay muted playsinline></video>
+<body>
+    <div class="arjs-loader">
+        <div>Loading AR... Point at a flat surface</div>
+    </div>
 
-    <!-- 1. Load A-Frame FIRST -->
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    
-    <!-- 2. AR.js with NFT support -->
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
-
-    <!-- 3. AR Scene -->
     <a-scene 
         vr-mode-ui="enabled: false"
-        arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: true; trackingMethod: best;"
-        renderer="logarithmicDepthBuffer: true; precision: medium;"
+        arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: true"
+        renderer="logarithmicDepthBuffer: true"
         embedded>
 
-        <!-- Model with DEBUG MATERIAL -->
-        <a-entity
-            id="chair"
-            gltf-model="url(/models/chair.glb)"
-            scale="0.5 0.5 0.5"
-            position="0 0 -1"
-            material="color: #FF0000; metalness: 0; roughness: 1"
-            arjs-anchor>
+        <!-- Chair made of primitives -->
+        <a-entity arjs-anchor>
+            <!-- Seat -->
+            <a-box 
+                width="0.5" height="0.05" depth="0.5" 
+                position="0 0 0" 
+                color="#C0A080">
+            </a-box>
+            
+            <!-- Backrest -->
+            <a-box 
+                width="0.5" height="0.5" depth="0.05" 
+                position="0 0.25 0.225" 
+                color="#654321">
+            </a-box>
+            
+            <!-- Legs -->
+            <a-cylinder 
+                position="-0.2 -0.25 -0.2" 
+                height="0.5" radius="0.02" 
+                color="#333">
+            </a-cylinder>
+            <a-cylinder 
+                position="0.2 -0.25 -0.2" 
+                height="0.5" radius="0.02" 
+                color="#333">
+            </a-cylinder>
+            <a-cylinder 
+                position="-0.2 -0.25 0.2" 
+                height="0.5" radius="0.02" 
+                color="#333">
+            </a-cylinder>
+            <a-cylinder 
+                position="0.2 -0.25 0.2" 
+                height="0.5" radius="0.02" 
+                color="#333">
+            </a-cylinder>
         </a-entity>
 
         <a-camera-static></a-camera-static>
     </a-scene>
 
     <script>
-    const debug = document.getElementById('debug');
-    const video = document.getElementById('video-preview');
-
-    // 1. Verify camera stream
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-            video.srcObject = stream;
-            debug.textContent += "\n✅ Camera active";
-        })
-        .catch(err => {
-            debug.textContent += `\n❌ Camera error: ${err.message}`;
-        });
-
-    // 2. Scene events
-    const scene = document.querySelector('a-scene');
-    const chair = document.getElementById('chair');
-
-    scene.addEventListener('loaded', () => {
-        debug.textContent += "\n🌐 Scene loaded";
+    // Hide loader when AR starts
+    document.querySelector('a-scene').addEventListener('loaded', function() {
+        document.querySelector('.arjs-loader').style.display = 'none';
     });
-
-    scene.addEventListener('arjs-video-loaded', () => {
-        debug.textContent += "\n📹 AR video ready";
-    });
-
-    scene.addEventListener('markerFound', () => {
-        debug.textContent += "\n🎯 Surface detected";
-    });
-
-    chair.addEventListener('model-loaded', () => {
-        debug.textContent += "\n🪑 Model loaded (check for RED chair)";
-        // Force visible in case scale is wrong
-        chair.setAttribute('scale', '0.5 0.5 0.5');
-    });
-
-    chair.addEventListener('model-error', (evt) => {
-        debug.textContent += `\n❌ Model error: ${evt.detail?.message || 'Unknown'}`;
-        console.error("Model error details:", evt.detail);
-    });
-
-    // 3. Timeout check
-    setTimeout(() => {
-        if (!document.querySelector('a-entity[gltf-model]').object3D.visible) {
-            debug.textContent += "\n⚠️ Model invisible? Try:";
-            debug.textContent += "\n- Moving phone slowly over textures";
-            debug.textContent += "\n- Brighter lighting";
-            debug.textContent += "\n- Checking console for errors";
-        }
-    }, 10000);
     </script>
 </body>
 </html>
