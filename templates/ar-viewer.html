@@ -2,92 +2,62 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <!-- iPhone-specific viewport tag -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <!-- AR.js with iOS patches -->
     <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
     <style>
-        .arjs-loader {
+        body { margin: 0; overflow: hidden; }
+        #debug {
             position: fixed;
-            top: 0;
+            bottom: 20px;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            font-family: Arial;
             z-index: 9999;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        .arjs-loader.hidden {
-            display: none;
         }
     </style>
 </head>
-<body style="margin: 0; overflow: hidden;">
-    <div id="loader" class="arjs-loader">
-        <div>
-            Loading AR...<br>
-            <small id="status-text">Initializing camera</small>
-        </div>
-    </div>
-
+<body>
     <a-scene 
         vr-mode-ui="enabled: false"
-        arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: true; trackingMethod: best;"
-        renderer="logarithmicDepthBuffer: true; precision: medium; antialias: true;"
-        embedded>
+        arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: true;"
+        renderer="logarithmicDepthBuffer: true">
 
-        <!-- Test with both model paths -->
+        <!-- TEST MODEL (Direct from GitHub) -->
         <a-entity
             id="chair"
-            gltf-model="url(https://your-render-url.onrender.com/models/chair.glb)"
-            scale="0.2 0.2 0.2"
-            position="0 0 -0.5"
-            rotation="0 180 0"
+            gltf-model="url(https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Chair/glTF-Binary/Chair.glb)"
+            scale="0.3 0.3 0.3"
+            position="0 0 -1"
             arjs-anchor>
         </a-entity>
 
         <a-camera-static></a-camera-static>
     </a-scene>
 
+    <div id="debug">Initializing AR...</div>
+
     <script>
-    // Enhanced debugging
-    const loader = document.getElementById('loader');
-    const statusText = document.getElementById('status-text');
-    const scene = document.querySelector('a-scene');
+    const debug = document.getElementById('debug');
     const chair = document.getElementById('chair');
 
-    // 1. AR Session Tracking
-    scene.addEventListener('arjs-video-loaded', () => {
-        statusText.textContent = "Camera ready - scan a surface";
-    });
-
-    // 2. Model Loading
+    // Debug events
     chair.addEventListener('model-loaded', () => {
-        console.log("Model loaded successfully");
-        loader.classList.add('hidden');
+        debug.textContent = "SUCCESS: Chair loaded! Move your phone.";
+        console.log("Model loaded:", chair.components['gltf-model'].model);
     });
 
     chair.addEventListener('model-error', (e) => {
+        debug.textContent = `ERROR: ${e.detail.message}`;
         console.error("Model error:", e.detail);
-        statusText.textContent = "Failed to load model. Trying fallback...";
-        
-        // Load test model as fallback
-        chair.setAttribute('gltf-model', {
-            src: 'url(https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Chair/glTF-Binary/Chair.glb)'
-        });
     });
 
-    // 3. Timeout for iPhone
-    setTimeout(() => {
-        if (loader.style.display !== 'none') {
-            statusText.textContent = "Having trouble? Try:\n1. Brighter lighting\n2. Moving phone slowly\n3. Different surface";
-        }
-    }, 10000);
+    document.querySelector('a-scene').addEventListener('arjs-video-loaded', () => {
+        debug.textContent += "\nCamera ready - scan a surface";
+    });
     </script>
 </body>
 </html>
