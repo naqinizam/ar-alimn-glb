@@ -2,12 +2,12 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <script src="https://cdn.jsdelivr.net/npm/aframe@1.2.0/dist/aframe.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
     <style>
         .arjs-loader {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
@@ -23,37 +23,47 @@
 </head>
 <body style="margin: 0; overflow: hidden;">
     <div class="arjs-loader">
-        <div>Loading AR...<br>Point camera at a flat surface</div>
+        <div>Loading AR...<br>Point at a flat surface</div>
     </div>
 
     <a-scene
         vr-mode-ui="enabled: false"
-        arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: true"
-        renderer="logarithmicDepthBuffer: true">
+        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: true"
+        renderer="logarithmicDepthBuffer: true; precision: high">
 
-        <!-- Test with both model paths -->
+        <!-- LOCAL MODEL (use one or the other) -->
         <a-entity
-            gltf-model="url(https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Chair/glTF-Binary/Chair.glb)"
-            scale="0.5 0.5 0.5"
-            position="0 0 -1"
+            gltf-model="url(/models/chair.glb)"
+            scale="0.3 0.3 0.3"
+            position="0 0 -0.5"
+            rotation="0 180 0"
             arjs-anchor>
         </a-entity>
+
+        <!-- OR REMOTE TEST MODEL -->
+        <!--
+        <a-entity
+            gltf-model="url(https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Chair/glTF-Binary/Chair.glb)"
+            scale="0.3 0.3 0.3"
+            position="0 0 -0.5"
+            arjs-anchor>
+        </a-entity>
+        -->
 
         <a-camera-static></a-camera-static>
     </a-scene>
 
     <script>
-        // Debugging logs
+        // Debugging
         const scene = document.querySelector('a-scene');
         scene.addEventListener('loaded', () => {
-            console.log("AR scene loaded");
+            console.log("Scene loaded");
             document.querySelector('.arjs-loader').style.display = 'none';
         });
-        
-        const chair = document.querySelector('[gltf-model]');
-        chair.addEventListener('model-error', (e) => {
+
+        document.querySelector('[gltf-model]').addEventListener('model-error', (e) => {
             console.error("Model error:", e.detail);
-            alert("Error: " + JSON.stringify(e.detail));
+            alert(`Model load failed. Try again or check console.`);
         });
     </script>
 </body>
