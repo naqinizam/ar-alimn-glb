@@ -25,11 +25,43 @@
         }
     </style>
 </head>
+// Add before </body>
+<script>
+document.querySelector('a-scene').addEventListener('loaded', () => {
+    console.log("Scene loaded");
+    
+    const chair = document.querySelector('[gltf-model]');
+    chair.addEventListener('model-loaded', () => {
+        console.log("Chair model loaded successfully");
+        alert("Model loaded - point camera at a flat surface");
+    });
+    
+    chair.addEventListener('model-error', (e) => {
+        console.error("Model failed to load:", e.detail);
+        alert("Error loading model: " + JSON.stringify(e.detail));
+    });
+});
+
+// WebXR availability check
+if (!navigator.xr) {
+    console.warn("WebXR not supported - falling back to AR.js");
+    document.querySelector('a-scene').setAttribute('arjs', 'sourceType: webcam;');
+}
+</script>
 <body style="margin: 0; overflow: hidden;">
     <div class="arjs-loader">
         <div>Loading AR...<br>Please allow camera access</div>
     </div>
-
+<!-- Add before <a-scene> -->
+<script>
+if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    document.write('<script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1.2.0/dist/aframe-master.min.js"><\/script>');
+    document.write('<script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"><\/script>');
+} else {
+    document.write('<script src="https://aframe.io/releases/1.2.0/aframe.min.js"><\/script>');
+    document.write('<script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"><\/script>');
+}
+</script>
     <a-scene
         vr-mode-ui="enabled: false"
         renderer="logarithmicDepthBuffer: true; precision: medium;"
