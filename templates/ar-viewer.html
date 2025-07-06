@@ -2,9 +2,10 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <!-- iPhone-specific viewport tag -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <!-- iPhone-specific AR.js build -->
-    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1.4.2/dist/aframe.min.js"></script>
+    <!-- AR.js with iOS patches -->
+    <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
     <style>
         .arjs-loader {
@@ -19,66 +20,74 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         }
-        .arjs-loader div {
-            text-align: center;
-            font-size: 1.2em;
-            margin-top: 10px;
+        .arjs-loader.hidden {
+            display: none;
         }
     </style>
 </head>
 <body style="margin: 0; overflow: hidden;">
-    <!-- Loading Screen -->
-    <div class="arjs-loader">
+    <div id="loader" class="arjs-loader">
         <div>
             Loading AR...<br>
-            <small>Point at a flat surface under good lighting</small>
+            <small id="status-text">Initializing camera</small>
         </div>
     </div>
 
-    <!-- AR Scene -->
     <a-scene 
         vr-mode-ui="enabled: false"
         arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: true; trackingMethod: best;"
         renderer="logarithmicDepthBuffer: true; precision: medium; antialias: true;"
         embedded>
 
-        <!-- Chair Model (use absolute URL) -->
+        <!-- Test with both model paths -->
         <a-entity
             id="chair"
-            gltf-model="url(https://YOUR-RENDER-URL.onrender.com/models/chair.glb)"
-            scale="0.3 0.3 0.3"
+            gltf-model="url(https://your-render-url.onrender.com/models/chair.glb)"
+            scale="0.2 0.2 0.2"
             position="0 0 -0.5"
             rotation="0 180 0"
-            animation="property: rotation; to: 0 360 0; loop: true; dur: 10000"
             arjs-anchor>
         </a-entity>
 
         <a-camera-static></a-camera-static>
     </a-scene>
 
-    <!-- Debug Script -->
     <script>
-        // Debugging events
-        const scene = document.querySelector('a-scene');
-        const chair = document.getElementById('chair');
+    // Enhanced debugging
+    const loader = document.getElementById('loader');
+    const statusText = document.getElementById('status-text');
+    const scene = document.querySelector('a-scene');
+    const chair = document.getElementById('chair');
+
+    // 1. AR Session Tracking
+    scene.addEventListener('arjs-video-loaded', () => {
+        statusText.textContent = "Camera ready - scan a surface";
+    });
+
+    // 2. Model Loading
+    chair.addEventListener('model-loaded', () => {
+        console.log("Model loaded successfully");
+        loader.classList.add('hidden');
+    });
+
+    chair.addEventListener('model-error', (e) => {
+        console.error("Model error:", e.detail);
+        statusText.textContent = "Failed to load model. Trying fallback...";
         
-        scene.addEventListener('loaded', () => {
-            console.log("AR scene initialized");
-            setTimeout(() => {
-                document.querySelector('.arjs-loader').style.display = 'none';
-            }, 2000);
+        // Load test model as fallback
+        chair.setAttribute('gltf-model', {
+            src: 'url(https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Chair/glTF-Binary/Chair.glb)'
         });
+    });
 
-        chair.addEventListener('model-error', (e) => {
-            console.error("Model load failed:", e.detail);
-            alert("Failed to load chair model. Check console for details.");
-        });
-
-        chair.addEventListener('model-loaded', () => {
-            console.log("Chair model loaded successfully!");
-        });
+    // 3. Timeout for iPhone
+    setTimeout(() => {
+        if (loader.style.display !== 'none') {
+            statusText.textContent = "Having trouble? Try:\n1. Brighter lighting\n2. Moving phone slowly\n3. Different surface";
+        }
+    }, 10000);
     </script>
 </body>
 </html>
