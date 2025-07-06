@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>AR Debug</title>
+    <title>AR Chair Viewer</title>
     <style>
         #debug {
             position: fixed;
@@ -16,91 +16,62 @@
             font-family: monospace;
             z-index: 9999;
         }
-        #video-preview {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100px;
-            height: 150px;
-            z-index: 9998;
-            border: 2px solid red;
-        }
     </style>
 </head>
 <body style="margin: 0;">
-    <div id="debug">Initializing...</div>
-    <video id="video-preview" autoplay muted playsinline></video>
+    <div id="debug">Initializing AR...</div>
 
-    <!-- 1. Load A-Frame FIRST -->
+    <!-- Load A-Frame and AR.js -->
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    
-    <!-- 2. Dynamically load AR.js after camera check -->
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+
+    <!-- AR Scene -->
+    <a-scene 
+        vr-mode-ui="enabled: false"
+        arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: true; trackingMethod: best;"
+        renderer="logarithmicDepthBuffer: true; precision: medium;"
+        embedded>
+
+        <!-- Model with ERROR EVENT LISTENER -->
+        <a-entity
+            id="chair"
+            gltf-model="url(/models/chair.glb)"
+            scale="0.3 0.3 0.3"
+            position="0 0 -1"
+            rotation="0 180 0"
+            arjs-anchor
+            events="model-error: onModelError; model-loaded: onModelLoaded">
+        </a-entity>
+
+        <a-camera-static></a-camera-static>
+    </a-scene>
+
     <script>
     const debug = document.getElementById('debug');
-    const video = document.getElementById('video-preview');
 
-    async function startAR() {
-        try {
-            // STAGE 1: Test camera
-            debug.textContent += "\n[1/3] Checking camera...";
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }
-            });
-            video.srcObject = stream;
-            debug.textContent += "\n✅ Camera working";
-
-            // STAGE 2: Load AR.js
-            debug.textContent += "\n[2/3] Loading AR engine...";
-            await loadScript("https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js");
-            debug.textContent += "\n✅ AR.js loaded";
-
-            // STAGE 3: Initialize scene
-            initScene();
-            
-        } catch (err) {
-            debug.textContent += `\n❌ FAILED: ${err.message}`;
-            console.error(err);
-        }
+    // Model event handlers
+    function onModelLoaded() {
+        debug.textContent += "\n✅ Chair model loaded! Move your phone.";
+        console.log("Model loaded successfully");
     }
 
-    function loadScript(url) {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.onload = resolve;
-            script.onerror = () => reject(new Error(`Failed to load ${url}`));
-            script.src = url;
-            document.head.appendChild(script);
+    function onModelError(evt) {
+        const error = evt.detail || {};
+        debug.textContent += `\n❌ Model failed: ${error.message || "Unknown error"}`;
+        console.error("Model error:", error);
+
+        // Fallback to a known-working model
+        debug.textContent += "\n⚠️ Trying fallback model...";
+        document.getElementById('chair').setAttribute('gltf-model', {
+            src: 'url(https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Chair/glTF-Binary/Chair.glb)',
+            crossorigin: 'anonymous'
         });
     }
 
-    function initScene() {
-        const scene = document.createElement('a-scene');
-        scene.setAttribute('vr-mode-ui', 'enabled: false');
-        scene.setAttribute('arjs', 'sourceType: webcam; debugUIEnabled: true');
-        scene.setAttribute('renderer', 'logarithmicDepthBuffer: true');
-        
-        scene.innerHTML = `
-            <a-assets>
-                <a-asset-item id="chair" src="/models/chair.glb"></a-asset-item>
-            </a-assets>
-            <a-entity gltf-model="#chair" scale="0.3 0.3 0.3" position="0 0 -1" arjs-anchor></a-entity>
-            <a-camera-static></a-camera-static>
-        `;
-
-        scene.addEventListener('loaded', () => {
-            debug.textContent += "\n✅ Scene ready - point at a surface";
-            document.body.appendChild(scene);
-        });
-
-        document.body.appendChild(scene);
-    }
-
-    // Start the process
-    startAR();
+    // AR.js initialization check
+    document.querySelector('a-scene').addEventListener('arjs-video-loaded', () => {
+        debug.textContent += "\n📷 Camera ready - scan a surface";
+    });
     </script>
 </body>
 </html>
